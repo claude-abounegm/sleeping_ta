@@ -23,7 +23,7 @@ void queue_free(queue* q)
     pthread_mutex_destroy(&q->lock);
 }
 
-char queue_enqueue(queue* q, int value)
+char queue_enqueue(queue* q, int value, int* _index)
 {
     int retVal = -1;
 
@@ -33,6 +33,7 @@ char queue_enqueue(queue* q, int value)
         int index = (q->front + q->count) % q->cap;
         q->arr[index] = value;
         retVal = ++q->count;
+        *_index = index;
     }
     pthread_mutex_unlock(&q->lock);
 

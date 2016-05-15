@@ -13,10 +13,15 @@
 #include <semaphore.h>
 #include <time.h>
 
-#include "Student.h"
 #include "signal_mutex.h"
 #include "queue.h"
 #include "rand_ts.h"
+
+typedef struct _student
+{
+    int id;
+    sem_t* waitSem;
+} student;
 
 // some codes for console colors
 #define RED   "\x1B[31m"
@@ -75,11 +80,12 @@ void* taFn(void* arg);
 
 // START: GLOBAL VARS
 rand_ts rSeed;
-Student* students;
+student* students;
 
 // semaphores and signal mutex
 signal_mutex wakeupSignal;
 sem_t taHelping;
+sem_t chairs_sems[AVAILABLE_CHAIRS];
 
 // a thread safe queue
 queue chairsQueue;
