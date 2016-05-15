@@ -48,7 +48,10 @@ int main(int argc, char *argv[])
 
     // wait for the threads to end. a.k.a never.
     for (i = 0; i < studentsCount; ++i)
+    {
         pthread_join(student_threads[i], NULL);
+        sem_destroy(&students[i].studentWaiting);
+    }
     pthread_join(ta_thread, NULL);
 
     // cleanup resources
@@ -76,11 +79,7 @@ void* studentFn(void* arg)
 
         // enqueue the id to the queue.
         int available = queue_enqueue(&chairsQueue, s->id);
-
-        // if the enqueue-ing returns -1, then the queue is full, so we abort.
-        if (available == -1)
-            STUDENT_PRINT("There are no chairs available, back to programming!");
-        else
+        if (available != -1)
         {
             // if there is only one student in the chair, that means either: 
             //     1. the TA is sleeping, and we are next to work with him.
@@ -99,6 +98,9 @@ void* studentFn(void* arg)
             sem_wait(&taHelping);
             STUDENT_PRINT_COLOR(BLU, RESET, "The TA has finished helping me.");
         }
+        else
+            // if the enqueue-ing returns -1, then the queue is full, so we abort.
+            STUDENT_PRINT("There are no chairs available, back to programming!");
     }
 
     return NULL;
@@ -122,10 +124,12 @@ void* taFn(void* arg)
             // notify the student that their turn is now.
             sem_post(&students[*studentId - 1].studentWaiting);
             usleep(10);
+
             // wait for the help time.
             int waitTime = getRandomWaitTime();
-            TA_PRINT("Helping a student for %d seconds.", waitTime);
+            TA_PRINT("Helping student #%d for %d seconds.", *studentId, waitTime);
             sleep(waitTime);
+
             // notify the student that we're done helping them.
             sem_post(&taHelping);
 
@@ -140,14 +144,10 @@ void* taFn(void* arg)
 
 int getRandomProgrammingTime()
 {
-    // we technically should use a lock here, but this is not a very critical
-    // application, so we can ignore a race condition or two in here.
     return GET_RANDOM_WAIT(MIN_PROGRAMMING_TIME, MAX_PROGRAMMING_TIME);
 }
 
 int getRandomWaitTime()
 {
-    // we technically should use a lock here, but this is not a very critical
-    // application, so we can ignore a race condition or two in here.
     return GET_RANDOM_WAIT(MIN_HELP_TIME, MAX_HELP_TIME);
 }

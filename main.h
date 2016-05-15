@@ -44,7 +44,7 @@
 // the number of chairs outside the office
 #define AVAILABLE_CHAIRS 3
 
-// a student programs between 8 and 15 seconds
+// a student programs between 6 and 15 seconds
 #define MIN_PROGRAMMING_TIME 6
 #define MAX_PROGRAMMING_TIME 15
 
